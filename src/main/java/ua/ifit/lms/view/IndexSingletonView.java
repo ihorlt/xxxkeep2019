@@ -11,6 +11,7 @@ public class IndexSingletonView {
 
     private String path;
     private String indexHtml;
+    private String loginForm;
 
     private static IndexSingletonView ourInstance = new IndexSingletonView();
 
@@ -24,10 +25,15 @@ public class IndexSingletonView {
     public void setPath(String path) {
         this.path = path;
         this.indexHtml = getPartialHtml("index");
+        this.loginForm = getPartialHtml("login-form");
     }
 
     public String getIndexHtml() {
         return indexHtml;
+    }
+
+    public String getLoginForm() {
+        return loginForm;
     }
 
     private String getPartialHtml(String filename){

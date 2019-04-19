@@ -1,4 +1,4 @@
-package ua.ifit.lms.model;
+package ua.ifit.lms.dao.entity;
 
 import java.util.Objects;
 
