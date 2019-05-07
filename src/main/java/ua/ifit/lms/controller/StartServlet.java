@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -23,6 +24,7 @@ public class StartServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession();
 
         IndexSingletonView indexSingletonView = IndexSingletonView.getInstance();
         out.println(indexSingletonView.getIndexHtml());
@@ -37,7 +39,13 @@ public class StartServlet extends HttpServlet {
             // test repository
             UserRepository userRepository = new UserRepository();
             User user = userRepository.getUserByEmailByPassword(email, password);
-            out.println(loginView.welcomUserPage(user));
+            // check if a user successfully logged in
+            if (user != null) {
+                session.setAttribute("user", user);
+                response.sendRedirect("/notes/index");
+            }
+
+            out.println(loginView.getloginPage());
         } else {
             out.println(loginView.getloginPage());
         }

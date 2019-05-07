@@ -11,6 +11,7 @@ public class UserRepository {
 
     /**
      * Get User By Email and Password from User Table
+     * @return class User or null
      */
     public User getUserByEmailByPassword(String email, String password) {
 
