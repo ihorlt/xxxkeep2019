@@ -13,9 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.*;
 
 @WebServlet(name = "StartServlet", urlPatterns = {"/"}, loadOnStartup = 1)
 public class StartServlet extends HttpServlet {
+
+    // logging
+    private static  Logger log = Logger.getLogger("controller.StartServlet");
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     }
@@ -41,6 +46,7 @@ public class StartServlet extends HttpServlet {
             User user = userRepository.getUserByEmailByPassword(email, password);
             // check if a user successfully logged in
             if (user != null) {
+                log.info("Successfully logged in " + user.toString());
                 session.setAttribute("user", user);
                 response.sendRedirect("/notes/index");
             }
@@ -58,5 +64,21 @@ public class StartServlet extends HttpServlet {
         String path = getServletContext().getRealPath("html/");
         IndexSingletonView indexSingletonView = IndexSingletonView.getInstance();
         indexSingletonView.setPath(path);
+
+        // log file config
+        try {
+            // set file where to pu logs data
+            Handler fh = new FileHandler(getServletContext().getRealPath("/logs/app.log"));
+            // create object of formatter
+            fh.setFormatter(new SimpleFormatter());
+            // assign formatter to logger class
+            Logger.getLogger("").addHandler(fh);
+            // add copy output to console
+            Logger.getLogger("").addHandler(new ConsoleHandler());
+            // all levels will be outputted
+            Logger.getLogger("").setLevel(Level.INFO);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
