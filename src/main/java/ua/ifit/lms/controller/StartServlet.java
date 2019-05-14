@@ -13,9 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.*;
 
-@WebServlet(name = "StartServlet", urlPatterns = {"/"}, loadOnStartup = 1)
+@WebServlet(name = "StartServlet", urlPatterns = {"/*"}, loadOnStartup = 1)
 public class StartServlet extends HttpServlet {
 
     // logging
@@ -32,30 +34,67 @@ public class StartServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         IndexSingletonView indexSingletonView = IndexSingletonView.getInstance();
-        out.println(indexSingletonView.getIndexHtml());
+        LoginView loginView = new LoginView();
+        UserRepository userRepository = new UserRepository();
 
-        // get user credentials
-         LoginView loginView = new LoginView();
-        if (request.getParameter("email") != null &&
-                request.getParameter("password") != null) {
-            String email = request.getParameter("email");
-            String password = request.getParameter("password");
+        switch (request.getPathInfo()) {
+            case "/":
+                out.println(indexSingletonView.getIndexHtml());
+                break;
+            case "/login":
+            case "/login/":
+                if (request.getParameter("email") != null &&
+                        request.getParameter("password") != null) {
+                    String email = request.getParameter("email");
+                    String password = request.getParameter("password");
 
-            // test repository
-            UserRepository userRepository = new UserRepository();
-            User user = userRepository.getUserByEmailByPassword(email, password);
-            // check if a user successfully logged in
-            if (user != null) {
-                log.info("Successfully logged in " + user.toString());
-                session.setAttribute("user", user);
-                response.sendRedirect("/notes/index");
-            }
+                    // test repository
+                    User user = userRepository.getUserByEmailByPassword(email, password);
+                    // check if a user successfully logged in
+                    if (user != null) {
+                        log.info("Successfully logged in " + user.toString());
+                        session.setAttribute("user", user);
+                        response.sendRedirect("/notes/index");
+                    } else {
+                        out.println(loginView.getloginPage(false));
+                    }
+                } else {
+                    out.println(loginView.getloginPage(true));
+                }
+                break;
+            case "/logout":
+            case "/logout/":
+                // TODO add logout
+                out.println(indexSingletonView.getIndexHtml()
+                        .replace("<!--### insert html here ### -->", "<h1>logout</h1>"));
+                break;
+            case "/register":
+            case "/register/":
+                out.println(loginView.getRegisterPage());
+                if (request.getParameter("email") != null &&
+                        request.getParameter("password") != null &&
+                        request.getParameter("name") != null) {
+                    String email = request.getParameter("email");
+                    String password = request.getParameter("password");
+                    String name = request.getParameter("name");
 
-            out.println(loginView.getloginPage());
-        } else {
-            out.println(loginView.getloginPage());
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    LocalDateTime now = LocalDateTime.now();
+
+                    User user = new User(0, email, password, name, dtf.format(now), dtf.format(now));
+                    userRepository.saveUser(user);
+                    user = userRepository.getUserByEmailByPassword(email, password);
+                    if (user != null) {
+                        log.info("Successfully logged in " + user.toString());
+                        session.setAttribute("user", user);
+                        response.sendRedirect("/notes/index");
+                    }
+                    log.info(user.toString());
+                }
+                break;
+            default:
+                out.println(indexSingletonView.getIndexHtml());
         }
-
     }
 
     @Override

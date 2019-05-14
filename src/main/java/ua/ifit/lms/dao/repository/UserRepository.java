@@ -2,10 +2,7 @@ package ua.ifit.lms.dao.repository;
 
 import ua.ifit.lms.dao.entity.User;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class UserRepository {
 
@@ -46,5 +43,30 @@ public class UserRepository {
         }
 
         return null;
+    }
+
+    public void saveUser(User user) {
+
+        DataSource dataSource = new DataSource();
+
+        try(
+                Connection con = dataSource.getConnection();
+                PreparedStatement stmt = (user.getId() == 0L) ?
+                        con.prepareStatement("INSERT INTO user (email, password, name, date_created, date_last_entered) VALUES (?,?,?,?,?)") :
+                        con.prepareStatement("UPDATE user SET email=?, password=?, name=? WHERE id=" + user.getId());
+        ) {
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getName());
+            if (user.getId() == 0L) {
+                stmt.setString(4, user.getDate_created());
+                stmt.setString(5, user.getDate_last_entered());
+            }
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
